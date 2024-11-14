@@ -8,6 +8,8 @@ bot = telebot.TeleBot(Config.TEST_TOKEN)
 user_message_count = {}
 sticker_stats = {}
 user_traits = {}
+#banned_users = set()
+
 
 initial_traits = {
     "сила": 0, "устойчивость": 0, "броня": 0, "ловкость": 0, "счастье": 0, "спокойствие": 0,
@@ -52,7 +54,6 @@ def choose_sticker():
 def track_user_messages(message):
     chat_id = message.chat.id
     user_id = message.from_user.id
-    user_name = message.from_user.first_name or "Пользователь"
 
     if chat_id not in user_message_count:
         user_message_count[chat_id] = {}
@@ -70,7 +71,7 @@ def track_user_messages(message):
         if chat_id not in sticker_stats:
             sticker_stats[chat_id] = {}
         if user_id not in sticker_stats[chat_id]:
-            sticker_stats[chat_id][user_id] = {'name': user_name, 'count': 0}
+            sticker_stats[chat_id][user_id] = {'name': message.from_user.first_name, 'count': 0}
 
         sticker_stats[chat_id][user_id]['count'] += 1
 
@@ -83,7 +84,7 @@ def track_user_messages(message):
         bot.send_message(
             chat_id,
             f"{chosen_sticker['message']} (Шанс: {chosen_sticker['chance'] * 100:.0f}%) "
-            f"<a href='tg://user?id={user_id}'>{user_name}</a>",
+            f"<a href='tg://user?id={user_id}'>{message.from_user.first_name}</a>",
             parse_mode='HTML'
         )
 
