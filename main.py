@@ -13,27 +13,22 @@ initial_traits = {
     "сила": 0, "устойчивость": 0, "броня": 0, "ловкость": 0, "счастье": 0, "спокойствие": 0,
     "скрытность": 0, "аура": 0, "спиритизм": 0, "фимоз": 0, "уверенность": 0, "криворукость": 0, "хайп": 0
 }
+
 @bot.message_handler(commands=['stats'])
 def send_stats(message):
     chat_id = message.chat.id
-    print(f"Команда '/stats' вызвана в чате: {message.chat.type}, ID: {chat_id}")
-
     if chat_id not in sticker_stats or not sticker_stats[chat_id]:
         bot.send_message(chat_id, "😴 Пока нет статистики... Немножечко лень 😴")
         return
 
     sorted_stats = sorted(sticker_stats[chat_id].items(), key=lambda x: sum(user_traits[x[0]].values()), reverse=True)
     stats_message = "🏆 <b>Топ пользователей по характеристикам</b> 🏆\n\n📋 <u>Топ-лист:</u>\n\n"
-    rank = 1
-    for user_id, user_data in sorted_stats:
+    for rank, (user_id, user_data) in enumerate(sorted_stats, start=1):
         username = f"<a href='tg://user?id={user_id}'>{user_data.get('name', 'Неизвестный')}</a>"
         total_traits = sum(user_traits[user_id].values())
         stats_message += f"{rank}. {username}: {total_traits:.0f} очков ⭐️\n"
-        rank += 1
-
     stats_message += "\n🎉 <b>SEO-Руслан гордится вами!</b> 🎉"
     bot.send_message(chat_id, stats_message, parse_mode='HTML')
-
 
 @bot.message_handler(commands=['mytop'])
 def send_traits(message):
@@ -47,17 +42,11 @@ def send_traits(message):
     traits_message = f"📜 <b>Характеристики {user_name}</b> 📜\n\n"
     for trait, value in user_traits[user_id].items():
         traits_message += f"🔹 <b>{trait.capitalize()}</b>: {value}\n"
-
     bot.send_message(chat_id, traits_message, parse_mode='HTML')
 
 def choose_sticker():
-    random_value = random.random()
-    cumulative_probability = 0.0
-    for sticker in sticker_pool:
-        cumulative_probability += sticker['chance']
-        if random_value <= cumulative_probability:
-            return sticker
-    return sticker_pool[-1]
+    sticker = random.choices(sticker_pool, weights=[s['chance'] for s in sticker_pool], k=1)[0]
+    return sticker
 
 @bot.message_handler(func=lambda message: message.chat.type in ['group', 'supergroup'], content_types=['text', 'photo', 'sticker', 'video', 'video_note'])
 def track_user_messages(message):

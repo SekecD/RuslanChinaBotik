@@ -13,7 +13,7 @@ sticker_pool = [
     },
     {
         'id': 'CAACAgIAAxkBAAENHipnNPquoj1u2zoYgZ4E43IqTY9kowACbWkAAkw1KUmjU1q0J3wLmDYE',
-        'chance': 0.05,
+        'chance': 0.15,
         'message': 'Вам выпал бешеный Елисей',
         'traits': {'броня': 25}
     },
@@ -25,7 +25,7 @@ sticker_pool = [
     },
     {
         'id': 'CAACAgIAAxkBAAENHjFnNPr63UkpFsJk4ffA6VsozGj4vAACEVIAAqGBKUkzzUP2Z6TtnzYE',
-        'chance': 0.03,
+        'chance': 0.10,
         'message': 'Вам выпал гига Руслан',
         'traits': {"сила": 50, "устойчивость": 50, "броня": 50, "ловкость": 50, "счастье": 50, "спокойствие": 50,"скрытность": 50, "аура": 50, "спиритизм": 50, "фимоз": 50, "уверенность": 50, "криворукость": 50, "хайп": 50}
     },
@@ -49,13 +49,13 @@ sticker_pool = [
     },
     {
         'id': 'CAACAgIAAxkBAAENHjtnNPsr8oIZOvVZ7_HBkuCPh9AoLgACKV4AAmRuIEkZvtwFcE0HhTYE',
-        'chance': 0.01,
+        'chance': 0.10,
         'message': 'вам выпал крутой Андрей',
         'traits': {"сила": 26, "устойчивость": 26, "броня": 26, "ловкость": 26, "счастье": 26, "спокойствие": 26,"скрытность": 26, "аура": 26, "спиритизм": 26, "фимоз": 26, "уверенность": 26, "криворукость": 26, "хайп": 26}
     },
     {
         'id': 'CAACAgIAAxkBAAENHj9nNPs-kG0I0GHjgsj7rhSfISsCZQACSVgAArP9IEm1kxkRQuYoyDYE',
-        'chance': 0.03,
+        'chance': 0.10,
         'message': 'вам выпал поцелуй Андрей',
         'traits': {'хайп': 52}
     },
@@ -73,7 +73,7 @@ sticker_pool = [
     },
     {
         'id': 'CAACAgIAAxkBAAENHkVnNPthltMOKvUm5S1WtotyUKtS7wACy2MAAs-jIUl6kdUF41G13zYE',
-        'chance': 0.05,
+        'chance': 0.10,
         'message': 'Вам выпал мак комбо делюкс 3 сыра и 1 грибок',
         'traits': {'спиритизм': 15, 'фимоз': -2, 'уверенность': -4, 'криворукость': 15}
     },
@@ -81,11 +81,11 @@ sticker_pool = [
         'id': 'CAACAgIAAxkBAAENHkdnNPttbgRVd6lKt0Tjbgr5qC5migACZFsAAnZVIEkr9v1sYeW78jYE',
         'chance': 0.35,
         'message': 'Вам выпал Тигран щекастый',
-        'traits': {'счвстья': 12}
+        'traits': {'счастье': 12}
     },
     {
         'id': 'CAACAgIAAxkBAAENHklnNPt5YKseT8E5jYXENrQPWyRfWgAC4lsAAqPzIEkB-jrX-WEbmTYE',
-        'chance': 0.2,
+        'chance': 0.20,
         'message': 'Вам выпал дотер Елисей',
         'traits': {'фимоз': 14}
     },
@@ -97,7 +97,7 @@ sticker_pool = [
     },
     {
         'id': 'CAACAgIAAxkBAAENHk1nNPuu5zn5XPuasYOWBcHrG3qawgACC1cAAjXcKUnKxRuqq1W1tDYE',
-        'chance': 0.4,
+        'chance': 0.40,
         'message': 'Вам выпало 2 крипа',
         'traits': {'спиритизм': 5, 'броня': 18}
     },
