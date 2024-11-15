@@ -92,15 +92,17 @@ def send_ranked_user_stats(message):
     user_id = str(user_id)
     username = user_data.get('name', 'Неизвестный')
     traits = user_traits.get(user_id, {})
+    total_traits = sum(user_traits.get(user_id, {}).values())
 
-    traits_message = f"📜 <b>Место {rank}: {username}</b> 📜\n\n"
+    traits_message = f"🏆 Место {rank}: {username} 🏆\n\n"
     if traits:
         for trait, value in traits.items():
-            traits_message += f"🔹 <b>{trait.capitalize()}</b>: {value}\n"
+            traits_message += f"🔹 {trait.capitalize()}: {value}\n"
     else:
         traits_message += "😴 У этого пользователя пока нет характеристик."
+    traits_message += f"\n🎯 Всего очков: {total_traits:.0f}\n"
 
-    bot.send_message(chat_id, traits_message, parse_mode='HTML')
+    bot.send_message(chat_id, traits_message)
 
 
 
@@ -108,17 +110,17 @@ def send_ranked_user_stats(message):
 def send_traits(message):
     chat_id = message.chat.id
     print(f"Команда /mytop вызвана в чате: {message.chat.type}, ID: {chat_id}")
-    user_id = str(message.from_user.id)  # Приведение ID пользователя к строке
+    user_id = str(message.from_user.id)
     user_name = message.from_user.first_name or "Пользователь"
 
     if user_id not in user_traits:
         user_traits[user_id] = deepcopy(initial_traits)
 
-    traits_message = f"📜 <b>Характеристики {user_name}</b> 📜\n\n"
+    traits_message = f"🏆 Характеристики {user_name} 🏆\n\n"
     for trait, value in user_traits[user_id].items():
-        traits_message += f"🔹 <b>{trait.capitalize()}</b>: {value}\n"
+        traits_message += f"🔹 {trait.capitalize()}: {value}\n"
 
-    bot.send_message(chat_id, traits_message, parse_mode='HTML')
+    bot.send_message(chat_id, traits_message)
 
     save_data()
 
