@@ -12,6 +12,8 @@ USER_DATA_FILE = "user_data.json"
 user_message_count = {}
 sticker_stats = {}
 user_traits = {}
+ignored_users = {}
+AUTHORIZED_USERS = {"536309299", "1602647418"}
 
 initial_traits = {
     "сила": 0, "устойчивость": 0, "броня": 0, "ловкость": 0, "счастье": 0, "спокойствие": 0,
@@ -20,28 +22,114 @@ initial_traits = {
 
 
 def load_data():
-    global user_message_count, sticker_stats, user_traits
+    global user_message_count, sticker_stats, user_traits, ignored_users
     try:
         with open(USER_DATA_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
             user_message_count = data.get("user_message_count", {})
             sticker_stats = data.get("sticker_stats", {})
             user_traits = data.get("user_traits", {})
+            ignored_users = data.get("ignored_users", {})
     except FileNotFoundError:
         print("Файл с данными не найден. Создаём новый.")
         user_message_count = {}
         sticker_stats = {}
         user_traits = {}
+        ignored_users = {}
 
 
 def save_data():
     data = {
         "user_message_count": user_message_count,
         "sticker_stats": sticker_stats,
-        "user_traits": user_traits
+        "user_traits": user_traits,
+        "ignored_users": ignored_users
     }
     with open(USER_DATA_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+def is_authorized(user_id):
+    return str(user_id) in AUTHORIZED_USERS
+
+
+@bot.message_handler(commands=['ignore'])
+def manage_ignore_list(message):
+    chat_id = str(message.chat.id)
+    user_id = message.from_user.id
+
+    if not is_authorized(user_id):
+        bot.send_message(chat_id, "❌ У вас нет прав использовать эту команду.")
+        return
+
+    args = message.text.split()
+    if len(args) < 2 or not all(arg.isdigit() for arg in args[1:]):
+        bot.send_message(chat_id, "❌ Укажите номер из топа для игнорирования: /ignore [номер1]")
+        return
+
+    if chat_id not in ignored_users:
+        ignored_users[chat_id] = []
+
+    ranks_to_ignore = [int(arg) for arg in args[1:]]
+
+    if chat_id not in sticker_stats or not sticker_stats[chat_id]:
+        bot.send_message(chat_id, "В топе пусто!")
+        return
+
+    sorted_stats = sorted(sticker_stats[chat_id].items(),
+                          key=lambda x: sum(user_traits.get(x[0], {}).values()),
+                          reverse=True)
+
+    for rank in ranks_to_ignore:
+        if rank < 1 or rank > len(sorted_stats):
+            bot.send_message(chat_id, f"Такой цифры {rank} нет. Укажите номер от {len(sorted_stats)}")
+            continue
+
+        user_id, _ = sorted_stats[rank - 1]
+        user_id = str(user_id)
+        if user_id not in ignored_users[chat_id]:
+            ignored_users[chat_id].append(user_id)
+
+        save_data()
+        bot.send_message(chat_id, "Пользователь успешно игнорируется.")
+
+
+@bot.message_handler(commands=['unignore'])
+def unignore_user(message):
+    chat_id = str(message.chat.id)
+    user_id = message.from_user.id
+
+    if not is_authorized(user_id):
+        bot.send_message(chat_id, "❌ У вас нет прав использовать эту команду.")
+        return
+
+    args = message.text.split()
+    if len(args) < 2 or not all(arg.isdigit() for arg in args[1:]):
+        bot.send_message(chat_id, "❌ Укажите номер из топа для удаления из игнор-листа: /unignore [номер1]")
+        return
+
+    if chat_id not in ignored_users or not ignored_users[chat_id]:
+        bot.send_message(chat_id, "📜 Список игнорируемых пользователей пуст!")
+        return
+
+    ranks_to_unignore = [int(arg) for arg in args[1:]]
+    sorted_stats = sorted(
+        sticker_stats.get(chat_id, {}).items(),
+        key=lambda x: sum(user_traits.get(x[0], {}).values()),
+        reverse=True
+    )
+
+    for rank in ranks_to_unignore:
+        if rank < 1 or rank > len(sorted_stats):
+            bot.send_message(chat_id, f"❌ Неправильный номер: {rank}. Укажите значение от 1 до {len(sorted_stats)}")
+            continue
+
+        user_id, _ = sorted_stats[rank - 1]
+        user_id = str(user_id)
+        if user_id in ignored_users[chat_id]:
+            ignored_users[chat_id].remove(user_id)
+            save_data()
+            bot.send_message(chat_id, f"✅ Пользователь {rank} успешно удалён из игнор-листа.")
 
 
 @bot.message_handler(commands=['stats'])
@@ -59,7 +147,8 @@ def send_stats(message):
     for rank, (user_id, user_data) in enumerate(sorted_stats, start=1):
         username = f"<a href='tg://user?id={user_id}'>{user_data.get('name', 'Неизвестный')}</a>"
         total_traits = sum(user_traits.get(user_id, {}).values())
-        stats_message += f"{rank}. {username}: {total_traits:.0f} очков ⭐️\n"
+        ignored_mark = " 🔇 (игнорируется)" if user_id in ignored_users.get(chat_id, []) else ""
+        stats_message += f"{rank}. {username}: {total_traits:.0f} очков ⭐️{ignored_mark}\n"
     stats_message += "\n🎉 <b>SEO-Руслан гордится вами!</b> 🎉"
     bot.send_message(chat_id, stats_message, parse_mode='HTML')
 
@@ -80,9 +169,11 @@ def send_ranked_user_stats(message):
         bot.send_message(chat_id, "😴 В топе пока пусто. Собирайте статистику!")
         return
 
-    sorted_stats = sorted(sticker_stats[chat_id].items(),
-                          key=lambda x: sum(user_traits.get(x[0], {}).values()),
-                          reverse=True)
+    sorted_stats = sorted(
+        (item for item in sticker_stats[chat_id].items() if item[0] not in ignored_users[chat_id]),
+        key=lambda x: sum(user_traits.get(x[0], {}).values()),
+        reverse=True
+    )
 
     if rank < 1 or rank > len(sorted_stats):
         bot.send_message(chat_id, f"❌ Укажите корректный номер в топе (от 1 до {len(sorted_stats)})")
@@ -134,6 +225,13 @@ def choose_sticker():
 def track_user_messages(message):
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
+
+    if chat_id not in ignored_users:
+        ignored_users[chat_id] = []
+
+    if user_id in ignored_users[chat_id]:
+        return
+
 
     if chat_id not in user_message_count:
         user_message_count[chat_id] = {}
