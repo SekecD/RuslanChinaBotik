@@ -94,6 +94,23 @@ def manage_ignore_list(message):
         bot.send_message(chat_id, "Пользователь успешно игнорируется.")
 
 
+@bot.message_handler(commands=['ignorelist'])
+def show_ignore_list(message):
+    chat_id = str(message.chat.id)
+
+    if chat_id not in ignored_users or not ignored_users[chat_id]:
+        bot.send_message(chat_id, "📜 Список игнорируемых пользователей пуст!")
+        return
+
+    stats_message = "🔇 <b>Игнорируемые пользователи:</b>\n\n"
+    for user_id in ignored_users[chat_id]:
+        username = f"<a href='tg://user?id={user_id}'>Неизвестный</a>"
+        if user_id in sticker_stats.get(chat_id, {}):
+            username = f"<a href='tg://user?id={user_id}'>{sticker_stats[chat_id][user_id]['name']}</a>"
+        stats_message += f"🔹 {username}\n"
+
+    bot.send_message(chat_id, stats_message, parse_mode='HTML')
+
 @bot.message_handler(commands=['unignore'])
 def unignore_user(message):
     chat_id = str(message.chat.id)
