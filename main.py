@@ -64,6 +64,46 @@ def send_stats(message):
     bot.send_message(chat_id, stats_message, parse_mode='HTML')
 
 
+@bot.message_handler(commands=['top'])
+def send_ranked_user_stats(message):
+    chat_id = str(message.chat.id)
+    print(f"Команда /top вызвана в чате: {message.chat.type}, ID: {chat_id}")
+
+    args = message.text.split()
+    if len(args) < 2 or not args[1].isdigit():
+        bot.send_message(chat_id, "❌ Укажите номер в топе: /top [число]")
+        return
+
+    rank = int(args[1])
+
+    if chat_id not in sticker_stats or not sticker_stats[chat_id]:
+        bot.send_message(chat_id, "😴 В топе пока пусто. Собирайте статистику!")
+        return
+
+    sorted_stats = sorted(sticker_stats[chat_id].items(),
+                          key=lambda x: sum(user_traits.get(x[0], {}).values()),
+                          reverse=True)
+
+    if rank < 1 or rank > len(sorted_stats):
+        bot.send_message(chat_id, f"❌ Укажите корректный номер в топе (от 1 до {len(sorted_stats)})")
+        return
+
+    user_id, user_data = sorted_stats[rank - 1]
+    user_id = str(user_id)
+    username = user_data.get('name', 'Неизвестный')
+    traits = user_traits.get(user_id, {})
+
+    traits_message = f"📜 <b>Место {rank}: {username}</b> 📜\n\n"
+    if traits:
+        for trait, value in traits.items():
+            traits_message += f"🔹 <b>{trait.capitalize()}</b>: {value}\n"
+    else:
+        traits_message += "😴 У этого пользователя пока нет характеристик."
+
+    bot.send_message(chat_id, traits_message, parse_mode='HTML')
+
+
+
 @bot.message_handler(commands=['mytop'])
 def send_traits(message):
     chat_id = message.chat.id
@@ -74,7 +114,6 @@ def send_traits(message):
     if user_id not in user_traits:
         user_traits[user_id] = deepcopy(initial_traits)
 
-    # Генерация сообщения с характеристиками
     traits_message = f"📜 <b>Характеристики {user_name}</b> 📜\n\n"
     for trait, value in user_traits[user_id].items():
         traits_message += f"🔹 <b>{trait.capitalize()}</b>: {value}\n"
