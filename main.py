@@ -1,6 +1,7 @@
 import telebot
 import random
 import json
+from copy import deepcopy
 from config import Config
 from sticker_config import sticker_pool
 
@@ -67,17 +68,20 @@ def send_stats(message):
 def send_traits(message):
     chat_id = message.chat.id
     print(f"Команда /mytop вызвана в чате: {message.chat.type}, ID: {chat_id}")
-    user_id = message.from_user.id
+    user_id = str(message.from_user.id)  # Приведение ID пользователя к строке
     user_name = message.from_user.first_name or "Пользователь"
 
     if user_id not in user_traits:
-        user_traits[user_id] = initial_traits.copy()
+        user_traits[user_id] = deepcopy(initial_traits)
 
+    # Генерация сообщения с характеристиками
     traits_message = f"📜 <b>Характеристики {user_name}</b> 📜\n\n"
     for trait, value in user_traits[user_id].items():
         traits_message += f"🔹 <b>{trait.capitalize()}</b>: {value}\n"
+
     bot.send_message(chat_id, traits_message, parse_mode='HTML')
 
+    save_data()
 
 def choose_sticker():
     sticker = random.choices(sticker_pool, weights=[s['chance'] for s in sticker_pool], k=1)[0]
